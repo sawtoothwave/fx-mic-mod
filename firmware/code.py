@@ -207,7 +207,7 @@ AUTO_OFF_BLINK_SECONDS = 0.25
 # --- Hardware effects config ---
 
 # Analog mic gain, dB, -1 .. 36.
-MIC_GAIN = 14
+MIC_GAIN = 11  # 3 dB under the demo's 14, which clipped on loud singing
 # ADC digital gain, dB.
 ADC_VOLUME = 0
 # Headphone analog volume, dB. Only 0/-3/-6/-9 exist.
