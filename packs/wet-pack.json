@@ -1,7 +1,7 @@
 {
   "name": "WETPACK",
   "effects_only": true,
-  "auto_off_minutes": 0,
+  "auto_off_minutes": 10,
   "tails": true,
   "presets": [
     {
