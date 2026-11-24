@@ -53,6 +53,11 @@ GATE_OPEN = 120         # about -49 dBFS
 GATE_CLOSE = 80         # about -52 dBFS
 GATE_HOLD_MS = 200
 
+# When the paddle opens the mic, its level eases in over this long (squared
+# curve), so the step from silence and the tail of the paddle click are
+# softened. code.py uses the same length for presets without autotune.
+FADE_IN_MS = 80
+
 # "native": audiodelays.GranularPitchShift (or PitchShift on older firmware)
 # "python": pure-Python OLA shifter below (reference, likely too slow)
 SHIFT_ENGINE = "native"
@@ -820,6 +825,18 @@ def _scale(buf, n, gain):
         return
     for i in range(n):
         buf[i] = (buf[i] * gain) >> 8
+
+
+def _ramp(buf, n, g0, g1):
+    """buf[0:n] *= a gain going straight from g0 to g1 (both 0..1)."""
+    if _NP_VIEWS:
+        out = np.frombuffer(buf, dtype=np.int16)
+        ramped = np.array(out[0:n], dtype=_FLOAT) * np.linspace(g0, g1, n)
+        out[0:n] = np.array(ramped, dtype=np.int16)
+        return
+    step = (g1 - g0) / n
+    for i in range(n):
+        buf[i] = int(buf[i] * (g0 + step * i))
 
 
 class BackwardsStream:
@@ -1702,6 +1719,9 @@ class Autotune:
         # samples are mixed into this stage, so the paddle can mute the mic
         # without muting the sample.
         self.gate = 1
+        # How far the fade-in after the gate opens has got, 0 to 1. Starts
+        # done, so a preset loaded with the paddle already held opens at once.
+        self._fade = 1.0
         # The WaveReader being mixed in, or None, and its level in 256ths.
         self.sample = None
         self.sample_gain = 256
@@ -2196,6 +2216,11 @@ class Autotune:
             block[i] = 0
         if not self.gate:
             block[0:BLOCK_SIZE] = self._zeros
+            self._fade = 0.0
+        elif self._fade < 1.0:
+            done = min(1.0, self._fade + BLOCK_SIZE * 1000 / (SAMPLE_RATE * FADE_IN_MS))
+            _ramp(block, BLOCK_SIZE, self._fade * self._fade, done * done)
+            self._fade = done
         # The sample's next block was read (and scaled) after the last write,
         # so the write below lands at the same moment with or without one: a
         # file read here pushed it across the chain's render now and then.

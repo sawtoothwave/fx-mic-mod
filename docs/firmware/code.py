@@ -417,6 +417,9 @@ class DataContext:
 
         self.gate_open = False
 
+
+        self.fade_since = None
+
         self.level = 1.0
 
 
@@ -472,6 +475,10 @@ try:
 except ValueError as error:
     print("config: {}".format(error))
     THROUGH_PRESET = False
+
+
+
+GATE_AT_INPUT = THROUGH_PRESET or CONFIG.get("tails") is True
 
 
 _dead_zone = CONFIG.get("handle_dead_zone", HANDLE_DEAD_ZONE)
@@ -697,7 +704,7 @@ def build(ctx, preset):
         source = mic
 
     inlet, inlet_loop = source, ctx.tune is not None or not ctx.chain
-    if THROUGH_PRESET:
+    if GATE_AT_INPUT:
         mixer.voice[1].stop()
         mixer.voice[0].level = ctx.level
         if ctx.tune is not None:
@@ -717,7 +724,7 @@ def build(ctx, preset):
             ctx.chain[index].play(ctx.chain[index - 1])
         ctx.chain[0].play(inlet, loop=inlet_loop)
 
-    if not THROUGH_PRESET and ctx.gate_open:
+    if not GATE_AT_INPUT and ctx.gate_open:
 
         mixer.voice[0].level = ctx.level
 
@@ -1110,18 +1117,46 @@ def sample_voice(ctx):
 
 
 
-    return ctx.head.voice[1] if ctx.head is not None else mixer.voice[1]
+    return ctx.head.voice[1] if THROUGH_PRESET and ctx.head is not None else mixer.voice[1]
+
+
+def gate_voice(ctx):
+    0
+
+    if GATE_AT_INPUT and ctx.tune is not None:
+        return None
+    if ctx.head is not None:
+        return ctx.head.voice[0], 1.0
+    return mixer.voice[0], ctx.level
 
 
 def set_gate(ctx, held):
     0
-    if THROUGH_PRESET and ctx.tune is not None:
+
+
+    gated = gate_voice(ctx)
+    if gated is None:
         ctx.tune.gate = held
-    elif ctx.head is not None:
-        ctx.head.voice[0].level = 1.0 if held else 0.0
     else:
-        mixer.voice[0].level = ctx.level if held else 0.0
+        gated[0].level = 0.0
+    ctx.fade_since = time.monotonic() if held and gated is not None else None
     ctx.gate_open = held
+
+
+def step_fade(ctx, now):
+    0
+
+
+
+    if ctx.fade_since is None:
+        return
+    gated = gate_voice(ctx)
+    progress = (now - ctx.fade_since) * 1000 / autotune.FADE_IN_MS
+    if gated is None or progress >= 1.0:
+        ctx.fade_since = None
+        progress = 1.0
+    if gated is not None:
+        gated[0].level = gated[1] * progress * progress
 
 
 def backwards_stream(ctx):
@@ -1703,6 +1738,11 @@ try:
             recorder = data_context.recorder
             if not held and recorder is not None and recorder.recording:
                 recorder.stop()
+            if not held and data_context.active != RECORD_SPOT:
+
+
+                data_context.paddle_changed = None
+                set_gate(data_context, False)
         if (
             data_context.paddle_changed is not None
             and now - data_context.paddle_changed >= PADDLE_SETTLE_SECONDS
@@ -1715,6 +1755,7 @@ try:
                     print("recording into slot {}".format(data_context.white_active))
             else:
                 set_gate(data_context, held)
+        step_fade(data_context, now)
 
         if data_context.active == RECORD_SPOT:
             recorder = data_context.recorder

@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import math
 import wave
 
@@ -1029,6 +1030,38 @@ class DeviceScenarioTests(unittest.TestCase):
         through["presets"][1]["level"] = 0.6
         root, out, s = run("through", through, tone=(340.0, 1.0))
         self.assertEqual(s["out_level"], 0.6)
+
+    def test_squeeze_fades_the_mic_in(self):
+        config = json.loads(json.dumps(TEST_CONFIG))
+        config["presets"][0]["level"] = 0.5
+        root, out, s = run("fading", config)
+        self.assertGreater(s["out_level"], 0.0)
+        self.assertLess(s["out_level"], 0.5)
+
+    def test_letting_go_closes_the_mic_at_once(self):
+        echo = {"name": "E", "effects_only": True, "presets": [{"list": [
+            {"effect": "echo", "max_delay_ms": 500, "delay_ms": 250, "mix": 0.4}]}]}
+        root, out, s = run("level", echo)
+        self.assertEqual((s["out_level"], s["heads"]), (1.0, []))
+        root, out, s = run("released", echo)
+        self.assertEqual(s["out_level"], 0.0)
+        # "tails": the gate moves ahead of the echo, which keeps playing
+        echo["tails"] = True
+        root, out, s = run("level", echo)
+        self.assertEqual((s["out_level"], s["heads"][-1]["mic_level"]), (1.0, 1.0))
+        root, out, s = run("released", echo)
+        self.assertEqual((s["out_level"], s["heads"][-1]["mic_level"]), (1.0, 0.0))
+
+    def test_ramp_scales_a_block_from_g0_to_g1(self):
+        import array
+        import autotune
+        for views in (True, False):
+            with mock.patch.object(autotune, "_NP_VIEWS", views):
+                buf = array.array("h", [1000] * 100)
+                autotune._ramp(buf, 100, 0.0, 1.0)
+                self.assertEqual(buf[0], 0)
+                self.assertTrue(all(a <= b for a, b in zip(buf, buf[1:])))
+                self.assertGreater(buf[99], 980)
 
     def test_detector_at_every_rate(self):
         import autotune

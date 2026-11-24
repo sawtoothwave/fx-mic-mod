@@ -55,6 +55,11 @@ GATE_HOLD_MS = 200
 
 
 
+
+FADE_IN_MS = 80
+
+
+
 SHIFT_ENGINE = "native"
 GRAIN_SIZE = 512
 GRAIN_DENSITY = 2
@@ -820,6 +825,18 @@ def _scale(buf, n, gain):
         return
     for i in range(n):
         buf[i] = (buf[i] * gain) >> 8
+
+
+def _ramp(buf, n, g0, g1):
+    0
+    if _NP_VIEWS:
+        out = np.frombuffer(buf, dtype=np.int16)
+        ramped = np.array(out[0:n], dtype=_FLOAT) * np.linspace(g0, g1, n)
+        out[0:n] = np.array(ramped, dtype=np.int16)
+        return
+    step = (g1 - g0) / n
+    for i in range(n):
+        buf[i] = int(buf[i] * (g0 + step * i))
 
 
 class BackwardsStream:
@@ -1703,6 +1720,9 @@ class Autotune:
 
         self.gate = 1
 
+
+        self._fade = 1.0
+
         self.sample = None
         self.sample_gain = 256
         self._sample_ready = 0
@@ -2196,6 +2216,11 @@ class Autotune:
             block[i] = 0
         if not self.gate:
             block[0:BLOCK_SIZE] = self._zeros
+            self._fade = 0.0
+        elif self._fade < 1.0:
+            done = min(1.0, self._fade + BLOCK_SIZE * 1000 / (SAMPLE_RATE * FADE_IN_MS))
+            _ramp(block, BLOCK_SIZE, self._fade * self._fade, done * done)
+            self._fade = done
 
 
 

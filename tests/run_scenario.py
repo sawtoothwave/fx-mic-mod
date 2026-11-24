@@ -56,6 +56,18 @@ SCENARIOS = {
         paddle=[(1.0, 3.0)],
         end=2.0,
     ),
+    # Let go at 1.5 and ended 20 ms later: well inside the paddle settle.
+    "released": dict(
+        presses=tap(0.5, TOP),
+        paddle=[(1.0, 1.5)],
+        end=1.52,
+    ),
+    # The same squeeze, ended partway through the fade-in after the settle.
+    "fading": dict(
+        presses=tap(0.5, TOP),
+        paddle=[(1.0, 3.0)],
+        end=1.14,
+    ),
     # The sample button on the clean spot: a tap, a double tap, a hold, then
     # two presses too far apart to be a double tap.
     "auto": dict(

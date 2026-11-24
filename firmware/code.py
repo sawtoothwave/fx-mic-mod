@@ -416,6 +416,9 @@ class DataContext:
         self.paddle_held = False
         # Whether set_gate() last opened the mic.
         self.gate_open = False
+        # `time.monotonic()` the gate opened at while it's still fading in,
+        # or None.
+        self.fade_since = None
         # The active preset's output level, 0.0 to 1.0 (the "level" key).
         self.level = 1.0
         # `time.monotonic()` of the last paddle change still waiting to be
@@ -472,6 +475,10 @@ try:
 except ValueError as error:
     print("config: {}".format(error))
     THROUGH_PRESET = False
+
+# "tails": the paddle gates the mic going into the preset rather than the
+# preset's output, so echo and reverb tails ring out after letting go.
+GATE_AT_INPUT = THROUGH_PRESET or CONFIG.get("tails") is True
 
 # "handle_dead_zone": how much travel past the mic-open click still reads 0.
 _dead_zone = CONFIG.get("handle_dead_zone", HANDLE_DEAD_ZONE)
@@ -697,7 +704,7 @@ def build(ctx, preset):
         source = mic
 
     inlet, inlet_loop = source, ctx.tune is not None or not ctx.chain
-    if THROUGH_PRESET:
+    if GATE_AT_INPUT:
         mixer.voice[1].stop()  # a sample left over from record mode
         mixer.voice[0].level = ctx.level
         if ctx.tune is not None:
@@ -717,7 +724,7 @@ def build(ctx, preset):
             ctx.chain[index].play(ctx.chain[index - 1])
         ctx.chain[0].play(inlet, loop=inlet_loop)
 
-    if not THROUGH_PRESET and ctx.gate_open:
+    if not GATE_AT_INPUT and ctx.gate_open:
         # Squeezed through a preset change: open at the new preset's level.
         mixer.voice[0].level = ctx.level
 
@@ -1110,18 +1117,46 @@ def sample_voice(ctx):
     voice 1 of the output mixer (always the case in record mode, so a slot
     preview there plays dry).
     """
-    return ctx.head.voice[1] if ctx.head is not None else mixer.voice[1]
+    return ctx.head.voice[1] if THROUGH_PRESET and ctx.head is not None else mixer.voice[1]
+
+
+def gate_voice(ctx):
+    """The mixer voice the paddle gates and its open level, or None when
+    autotune gates the mic itself (and fades it in, per sample)."""
+    if GATE_AT_INPUT and ctx.tune is not None:
+        return None
+    if ctx.head is not None:
+        return ctx.head.voice[0], 1.0
+    return mixer.voice[0], ctx.level
 
 
 def set_gate(ctx, held):
-    """Open or close the mic for the paddle, wherever the mic is mixed."""
-    if THROUGH_PRESET and ctx.tune is not None:
+    """Open or close the mic for the paddle, wherever the mic is mixed.
+    Opening fades in (step_fade); closing is instant, so the release click
+    is cut as soon as it's seen."""
+    gated = gate_voice(ctx)
+    if gated is None:
         ctx.tune.gate = held
-    elif ctx.head is not None:
-        ctx.head.voice[0].level = 1.0 if held else 0.0
     else:
-        mixer.voice[0].level = ctx.level if held else 0.0
+        gated[0].level = 0.0
+    ctx.fade_since = time.monotonic() if held and gated is not None else None
     ctx.gate_open = held
+
+
+def step_fade(ctx, now):
+    """Raise the gated voice's level along the fade-in, once a loop pass.
+    shortcut: a mixer applies a level once a buffer (about 32 ms), so this
+    fade is a few steps, not a smooth ramp; a synthio block on the level
+    could make it smooth if the steps are still heard."""
+    if ctx.fade_since is None:
+        return
+    gated = gate_voice(ctx)
+    progress = (now - ctx.fade_since) * 1000 / autotune.FADE_IN_MS
+    if gated is None or progress >= 1.0:
+        ctx.fade_since = None
+        progress = 1.0
+    if gated is not None:
+        gated[0].level = gated[1] * progress * progress
 
 
 def backwards_stream(ctx):
@@ -1703,6 +1738,11 @@ try:
             recorder = data_context.recorder
             if not held and recorder is not None and recorder.recording:
                 recorder.stop()  # at once: the release click stays out
+            if not held and data_context.active != RECORD_SPOT:
+                # Close at once too, so the release click is cut (and, with
+                # "tails", kept out of the echoes); only opening waits.
+                data_context.paddle_changed = None
+                set_gate(data_context, False)
         if (
             data_context.paddle_changed is not None
             and now - data_context.paddle_changed >= PADDLE_SETTLE_SECONDS
@@ -1715,6 +1755,7 @@ try:
                     print("recording into slot {}".format(data_context.white_active))
             else:
                 set_gate(data_context, held)
+        step_fade(data_context, now)
 
         if data_context.active == RECORD_SPOT:
             recorder = data_context.recorder
