@@ -1,3 +1,73 @@
+# fx-mic-mod (sawtoothwave fork)
+
+A fork of [dougjberman/fx-mic-mod](https://github.com/dougjberman/fx-mic-mod), tuned for singing live
+through the Teenage Engineering FX Mic (EP-2350) into a Eurorack modular: wetter delays and reverbs,
+a quieter paddle, and echo tails that ring out after you let go.
+
+## What this fork changes
+
+All changes sit on top of fx-mic-mod firmware 1.2.0. Tested on one FX Mic with CircuitPython 10.3.1.
+
+**Firmware (`firmware/code.py`, `firmware/autotune.py`)**
+
+- **Fade-in on squeeze.** After the existing 100 ms paddle settle, the mic eases in over 80 ms
+  (`FADE_IN_MS` in `autotune.py`, squared curve) instead of jumping to full level, which softens the
+  paddle click. Autotune presets ramp sample by sample. Other presets step once per mixer buffer
+  (about 32 ms), so their fade is a few steps.
+- **Instant mute on release.** Letting go closes the mic at once instead of after the 100 ms settle,
+  so less of the release click reaches the output. Only opening waits for the settle.
+- **`"tails": true`** (new top-level `config.json` key). The paddle gates the mic going *into* the
+  preset instead of the preset's output, like an effects send, so echo and reverb tails keep ringing
+  after you let go. Changing presets still cuts the tail. Off by default.
+- **Gain staging.** Mic preamp `MIC_GAIN` 14 → 11 dB (14 clipped on loud singing), and the volume
+  knob's top `VOLUME_MAX_DB` 6 → 9 dB to win the level back after the preamp.
+
+**Presets ([`packs/wet-pack.json`](packs/wet-pack.json))**
+
+16 effects-only presets in four banks, with `"tails": true` and auto-off disabled for live use.
+Squeezing harder makes each preset wetter or raises its feedback.
+
+| Bank | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|
+| **1 Delays** | Tape dub | Slapback | Echo | Triplet taps |
+| **2 Reverbs** | Room | Plate | Hall | Cathedral |
+| **3 Chorus** | Chorus room | Chorus echo | Warble tape | Wide wash |
+| **4 Crunch** | Dub crunch | Crunch slap | Long degrade | Bend throw |
+
+The Tape dub and Crunch presets use the echo's `freq_shift` mode. In that mode CircuitPython's echo
+runs through a buffer of `max_delay_ms` at the speed needed to reach `delay_ms`, taking the nearest
+sample without interpolating. A ratio that isn't a whole number (500 / 420 ms for Tape dub) skips and
+repeats samples unevenly, which gives the repeats their aliased grit. Bank 4 varies that ratio.
+
+## Installing this fork
+
+1. Install fx-mic-mod as described in [Install](#install) below. The upstream project's hosted install
+   page installs *upstream* firmware, so to get this fork's changes, serve this repo's `docs/` folder
+   locally (for example `python3 -m http.server 8765 --directory docs`, then open
+   `http://127.0.0.1:8765/install.html` in Chrome) or copy the files in `docs/firmware/` to CIRCUITPY
+   by hand.
+2. Power the mic on in edit mode (hold the orange button while you squeeze the handle) and copy
+   `packs/wet-pack.json` to CIRCUITPY as `config.json`.
+
+The web editor has not been checked with the `tails` key. Saving presets from the editor may drop it,
+so edit `config.json` directly if you rely on it.
+
+## Credits
+
+- [fx-mic-mod](https://github.com/dougjberman/fx-mic-mod) by dougjberman and contributors (MIT): the
+  firmware, editor, install page and tests this fork is built on.
+- Adafruit's [EP-2350 CircuitPython demo](https://github.com/adafruit/Adafruit_Learning_System_Guides/tree/main/Teenage_Engineering_EP2350_Demo)
+  by Tim Cocks (MIT, see `LICENSE-ADAFRUIT`), and the guide
+  [Hacking the Teenage Engineering EP-2350 Ting](https://learn.adafruit.com/hacking-the-teenage-engineering-ep-2350-ting).
+- [CircuitPython](https://circuitpython.org/) by Adafruit and its contributors.
+
+Not affiliated with or endorsed by Teenage Engineering. Flashing replaces the stock firmware; back up
+the mic first (step 01 of the install page) so you can restore it.
+
+---
+
+*The upstream README follows.*
+
 # fx-mic-mod
 
 Custom CircuitPython firmware for the Teenage Engineering EP-2350 "Ting" / FX Mic: stackable effects
