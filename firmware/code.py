@@ -217,9 +217,10 @@ HEADPHONE_VOLUME = 0
 
 # What the two ends of the knob's travel mean, as a DAC digital volume in dB.
 # The codec's own limits are -66 to +24; the top is kept well short of that.
+# 9, not the demo's 6, makes up the 3 dB taken off MIC_GAIN.
 # Travel maps to dB linearly.
 VOLUME_MIN_DB = -50
-VOLUME_MAX_DB = 6
+VOLUME_MAX_DB = 9
 
 # Fraction of the travel at the counterclockwise end that means silence, so the
 # knob has a definite "off" rather than bottoming out at merely very quiet.
