@@ -21,10 +21,12 @@ All changes sit on top of fx-mic-mod firmware 1.2.0. Tested on one FX Mic with C
   after you let go. Changing presets still cuts the tail. Off by default.
 - **Gain staging.** Mic preamp `MIC_GAIN` 14 → 11 dB (14 clipped on loud singing), and the volume
   knob's top `VOLUME_MAX_DB` 6 → 9 dB to win the level back after the preamp.
+- **Starts ready to sing.** In effects-only mode the mic powers on to page 1, preset 1 instead of
+  Clean. BOTTOM still goes to Clean.
 
 **Presets ([`packs/wet-pack.json`](packs/wet-pack.json))**
 
-16 effects-only presets in four banks, with `"tails": true` and auto-off disabled for live use.
+16 effects-only presets in four banks, with `"tails": true` and a 10-minute auto-off on batteries.
 Squeezing harder makes each preset wetter or raises its feedback.
 
 | Bank | 1 | 2 | 3 | 4 |
@@ -38,6 +40,17 @@ The Tape dub and Crunch presets use the echo's `freq_shift` mode. In that mode C
 runs through a buffer of `max_delay_ms` at the speed needed to reach `delay_ms`, taking the nearest
 sample without interpolating. A ratio that isn't a whole number (500 / 420 ms for Tape dub) skips and
 repeats samples unevenly, which gives the repeats their aliased grit. Bank 4 varies that ratio.
+
+## Ideas for later
+
+- **Faster startup with precompiled modules.** From restart to ready takes about 3.6 s (measured over
+  serial, three runs), and about 3 s of that is the mic compiling `autotune.py`, `config_loader.py`,
+  `recorder.py` and `shake.py` from source on every boot. Shipping them as `.mpy` files built with
+  Adafruit's `mpy-cross` for the mic's CircuitPython version (10.3.1 here; macOS builds are at
+  `adafruit-circuit-python.s3.amazonaws.com/bin/mpy-cross/macos/`) should cut that; the size of the
+  saving is unmeasured. `code.py` must stay source. A `.py` on the drive wins over a `.mpy` of the same
+  name, so the `.py` modules have to be removed, and the install page and update check expect `.py`
+  files, so updates would need care. Real power-on time (squeeze to LED) is also unmeasured.
 
 ## Installing this fork
 
