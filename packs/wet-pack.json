@@ -1,0 +1,360 @@
+{
+  "name": "WETPACK",
+  "effects_only": true,
+  "auto_off_minutes": 0,
+  "tails": true,
+  "presets": [
+    {
+      "name": "Tape dub",
+      "comment": "Bank 1, delays. Tape-style echo (repeats bend in pitch if the delay moves). Squeeze toward runaway feedback.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 500,
+          "delay_ms": 420,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.5,
+            "b": 0.85,
+            "c": "$handle"
+          },
+          "mix": 0.45,
+          "freq_shift": true
+        }
+      ]
+    },
+    {
+      "name": "Slapback",
+      "comment": "Bank 1, delays. A short single slap. Squeeze for a few more repeats.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 150,
+          "delay_ms": 110,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.15,
+            "b": 0.4,
+            "c": "$handle"
+          },
+          "mix": 0.4,
+          "freq_shift": false
+        }
+      ]
+    },
+    {
+      "name": "Echo",
+      "comment": "Bank 1, delays. A plain 350 ms echo. Squeeze to lengthen the trail.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 400,
+          "delay_ms": 350,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.35,
+            "b": 0.65,
+            "c": "$handle"
+          },
+          "mix": 0.4,
+          "freq_shift": false
+        }
+      ]
+    },
+    {
+      "name": "Triplet taps",
+      "comment": "Bank 1, delays. Three taps across 600 ms in a triplet feel. Squeeze for more feedback.",
+      "list": [
+        {
+          "effect": "multi_tap_delay",
+          "max_delay_ms": 650,
+          "delay_ms": 600,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.3,
+            "b": 0.6,
+            "c": "$handle"
+          },
+          "mix": 0.4,
+          "taps": [
+            [
+              0.333,
+              0.5
+            ],
+            [
+              0.666,
+              0.7
+            ],
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Room",
+      "comment": "Bank 2, reverbs. A small, warm room. Squeeze harder for more room.",
+      "list": [
+        {
+          "effect": "freeverb",
+          "roomsize": 0.25,
+          "damp": 0.6,
+          "mix": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.35,
+            "b": 0.55,
+            "c": "$handle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plate",
+      "comment": "Bank 2, reverbs. Bright and medium length, little damping. Squeeze for more.",
+      "list": [
+        {
+          "effect": "freeverb",
+          "roomsize": 0.45,
+          "damp": 0.15,
+          "mix": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.4,
+            "b": 0.6,
+            "c": "$handle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hall",
+      "comment": "Bank 2, reverbs. A long hall. Squeeze and the dry voice starts to sink into it.",
+      "list": [
+        {
+          "effect": "freeverb",
+          "roomsize": 0.65,
+          "damp": 0.45,
+          "mix": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.45,
+            "b": 0.7,
+            "c": "$handle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cathedral",
+      "comment": "Bank 2, reverbs. Huge and wet from the start; a full squeeze is nearly all tail.",
+      "list": [
+        {
+          "effect": "freeverb",
+          "roomsize": 0.85,
+          "damp": 0.3,
+          "mix": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.55,
+            "b": 0.85,
+            "c": "$handle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chorus room",
+      "comment": "Bank 3, modulated. A three-voice chorus into a medium room. Squeeze for more room.",
+      "list": [
+        {
+          "effect": "chorus",
+          "max_delay_ms": 50,
+          "delay_ms": 20,
+          "voices": 3,
+          "mix": 0.5
+        },
+        {
+          "effect": "freeverb",
+          "roomsize": 0.4,
+          "damp": 0.4,
+          "mix": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.4,
+            "b": 0.6,
+            "c": "$handle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chorus echo",
+      "comment": "Bank 3, modulated. Chorus into a 300 ms echo. Squeeze to lengthen the trail.",
+      "list": [
+        {
+          "effect": "chorus",
+          "max_delay_ms": 50,
+          "delay_ms": 20,
+          "voices": 3,
+          "mix": 0.5
+        },
+        {
+          "effect": "echo",
+          "max_delay_ms": 350,
+          "delay_ms": 300,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.4,
+            "b": 0.7,
+            "c": "$handle"
+          },
+          "mix": 0.35,
+          "freq_shift": false
+        }
+      ]
+    },
+    {
+      "name": "Warble tape",
+      "comment": "Bank 3, modulated. An echo whose delay drifts slowly, so the repeats wobble in pitch like worn tape. Squeeze for more feedback.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 400,
+          "delay_ms": {
+            "block": "lfo",
+            "waveform": "sine",
+            "rate": 0.6,
+            "scale": 15,
+            "offset": 320
+          },
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.5,
+            "b": 0.8,
+            "c": "$handle"
+          },
+          "mix": 0.45,
+          "freq_shift": true
+        }
+      ]
+    },
+    {
+      "name": "Wide wash",
+      "comment": "Bank 3, modulated. A slowly sweeping four-voice chorus into a long reverb. Squeeze to drown.",
+      "list": [
+        {
+          "effect": "chorus",
+          "max_delay_ms": 50,
+          "delay_ms": {
+            "block": "lfo",
+            "waveform": "sine",
+            "rate": 0.3,
+            "scale": 8,
+            "offset": 18
+          },
+          "voices": 4,
+          "mix": 0.6
+        },
+        {
+          "effect": "freeverb",
+          "roomsize": 0.75,
+          "damp": 0.4,
+          "mix": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.55,
+            "b": 0.8,
+            "c": "$handle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dub crunch",
+      "comment": "Bank 4, crunch. Tape dub with the buffer racing 1.67x (700 / 420 ms), for more grit per repeat. Squeeze toward runaway.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 700,
+          "delay_ms": 420,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.5,
+            "b": 0.85,
+            "c": "$handle"
+          },
+          "mix": 0.45,
+          "freq_shift": true
+        }
+      ]
+    },
+    {
+      "name": "Crunch slap",
+      "comment": "Bank 4, crunch. A gritty 140 ms slap (200 / 140 ms = 1.43x). Squeeze for more repeats.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 200,
+          "delay_ms": 140,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.3,
+            "b": 0.55,
+            "c": "$handle"
+          },
+          "mix": 0.45,
+          "freq_shift": true
+        }
+      ]
+    },
+    {
+      "name": "Long degrade",
+      "comment": "Bank 4, crunch. 600 ms at 1.1x (660 / 600 ms) with long feedback, so it rots over many repeats.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 660,
+          "delay_ms": 600,
+          "decay": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 0.6,
+            "b": 0.88,
+            "c": "$handle"
+          },
+          "mix": 0.45,
+          "freq_shift": true
+        }
+      ]
+    },
+    {
+      "name": "Bend throw",
+      "comment": "Bank 4, crunch. Tape dub's echo, but squeezing shortens the delay from 420 to 250 ms, so the repeats pitch up like tape speeding up, and back down as you ease off.",
+      "list": [
+        {
+          "effect": "echo",
+          "max_delay_ms": 500,
+          "delay_ms": {
+            "block": "math",
+            "operation": "constrained_lerp",
+            "a": 420,
+            "b": 250,
+            "c": "$handle"
+          },
+          "decay": 0.6,
+          "mix": 0.45,
+          "freq_shift": true
+        }
+      ]
+    }
+  ],
+  "samples": []
+}
