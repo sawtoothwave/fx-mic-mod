@@ -88,8 +88,9 @@ SCENARIOS = {
     # BOTTOM -> clean; MIDDLE -> page 1 preset 1; TOP x2 -> preset 3;
     # MIDDLE -> page 2 preset 1; MIDDLE -> page 1 preset 1;
     # BOTTOM -> clean; TOP -> page 1 preset 1.
+    # Effects-only boots on page 1, preset 1; BOTTOM first goes to clean.
     "pages": dict(
-        presses=tap(0.5, TOP) + tap(1.0, TOP) + tap(1.5, MIDDLE) + tap(2.0, TOP)
+        presses=tap(0.2, BOTTOM) + tap(0.5, TOP) + tap(1.0, TOP) + tap(1.5, MIDDLE) + tap(2.0, TOP)
         + tap(2.5, BOTTOM) + tap(3.0, MIDDLE) + tap(3.4, TOP) + tap(3.8, TOP)
         + tap(4.0, MIDDLE) + tap(4.5, MIDDLE) + tap(5.0, BOTTOM) + tap(5.2, BOTTOM)
         + tap(5.4, TOP),
@@ -102,7 +103,7 @@ SCENARIOS = {
     # quickly -> back to page 1 preset 1; MIDDLE twice quickly from page 1
     # -> page 2 (round the back); TOP then MIDDLE quickly is no double tap.
     "pages_back": dict(
-        presses=tap(0.5, TOP) + tap(1.0, TOP) + tap(1.5, TOP) + tap(1.7, TOP)
+        presses=tap(0.2, BOTTOM) + tap(0.5, TOP) + tap(1.0, TOP) + tap(1.5, TOP) + tap(1.7, TOP)
         + tap(2.5, MIDDLE) + tap(3.0, MIDDLE) + tap(3.2, MIDDLE)
         + tap(4.0, MIDDLE) + tap(4.2, MIDDLE)
         + tap(5.0, TOP) + tap(5.2, MIDDLE),

@@ -1677,7 +1677,8 @@ mixer.voice[0].level = 0.0  # mic chain silent until the paddle is squeezed
 # starts at the handle's real position rather than sliding up from 0.
 for _ in range(int(1 / HANDLE_SMOOTHING) + 1):
     read_handle()
-select_preset(data_context, 0)
+# Effects-only mode comes up on page 1, preset 1, ready to sing; BOTTOM is clean.
+select_preset(data_context, 1 if EFFECTS_ONLY and PRESETS else 0)
 
 try:
     while True:

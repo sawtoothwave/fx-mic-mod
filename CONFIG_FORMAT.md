@@ -35,7 +35,7 @@ parameter names and types) and the demo `config.json`.
   turn lands on the new page's first preset. A quick double tap on TOP or MIDDLE goes back a preset
   or a page instead.
   BOTTOM goes to Clean, every LED dark, and is the only way there; from Clean, TOP or MIDDLE goes
-  to page 1, preset 1. The mic starts on Clean. `samples` and the sample settings are ignored but kept, so turning this off brings them
+  to page 1, preset 1. The mic starts on page 1, preset 1 (this fork; upstream starts on Clean). `samples` and the sample settings are ignored but kept, so turning this off brings them
   back. Only the selected preset's effects are built, so 16 presets cost the mic only their JSON.
 - `shake` **(new, optional)**: what shaking the mic does to a sample while it plays.
   `"zip"` (the default when the key is missing) speeds the echoes up so the sound zips,

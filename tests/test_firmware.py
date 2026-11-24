@@ -1214,7 +1214,8 @@ class DeviceScenarioTests(unittest.TestCase):
         root, out, s = run("pages", config, tone=(340.0, 1.0))
         picks = [l.split(" (")[0] for l in out.splitlines() if l.startswith("page ")]
         self.assertEqual(picks, [
-            "page 1 of 2, preset 0 of 4",     # boot: clean
+            "page 1 of 2, preset 1 of 4: P1",  # boot: page 1, preset 1
+            "page 1 of 2, preset 0 of 4",      # BOTTOM: clean
             "page 1 of 2, preset 1 of 4: P1",
             "page 1 of 2, preset 2 of 4: P2",
             "page 2 of 2, preset 1 of 2: P5",  # MIDDLE lands on the page's first preset
@@ -1236,7 +1237,7 @@ class DeviceScenarioTests(unittest.TestCase):
         # the white LEDs count the page, and go dark with the red ones on clean
         whites = [len(w) for t, w in transitions(s["white_log"]) if t < 5.8]
         self.assertEqual([w for i, w in enumerate(whites) if i == 0 or w != whites[i - 1]],
-                         [0, 1, 2, 0, 1, 2, 1, 0, 1])
+                         [1, 0, 1, 2, 0, 1, 2, 1, 0, 1])
         reds = [c for t, c in transitions(s["red_counts"]) if 2.4 < t < 2.9]
         self.assertEqual(reds[-1], 0)
 
@@ -1246,7 +1247,8 @@ class DeviceScenarioTests(unittest.TestCase):
         root, out, s = run("pages_back", config)
         picks = [l.split(" (")[0] for l in out.splitlines() if l.startswith("page ")]
         self.assertEqual(picks, [
-            "page 1 of 2, preset 0 of 4",
+            "page 1 of 2, preset 1 of 4: P1",  # boot: page 1, preset 1
+            "page 1 of 2, preset 0 of 4",      # BOTTOM: clean
             "page 1 of 2, preset 1 of 4: P1",
             "page 1 of 2, preset 2 of 4: P2",
             "page 1 of 2, preset 1 of 4: P1",  # TOP double tap: back one, nothing loaded on the way
