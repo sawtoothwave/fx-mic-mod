@@ -207,7 +207,9 @@ AUTO_OFF_BLINK_SECONDS = 0.25
 # --- Hardware effects config ---
 
 # Analog mic gain, dB, -1 .. 36.
-MIC_GAIN = 11  # 3 dB under the demo's 14, which clipped on loud singing
+# 0, not the demo's 14: effects like a short echo add to the voice, and above
+# about 5 dB a loud note clipped inside them (heard on a Ting, WETPACK Slapback).
+MIC_GAIN = 0
 # ADC digital gain, dB.
 ADC_VOLUME = 0
 # Headphone analog volume, dB. Only 0/-3/-6/-9 exist.
@@ -216,11 +218,11 @@ HEADPHONE_VOLUME = 0
 # --- Volume knob ---
 
 # What the two ends of the knob's travel mean, as a DAC digital volume in dB.
-# The codec's own limits are -66 to +24; the top is kept well short of that.
-# 9, not the demo's 6, makes up the 3 dB taken off MIC_GAIN.
+# The codec's own limits are -66 to +24; the top stays 4 dB short of that.
+# 20, not the demo's 6, makes up the 14 dB taken off MIC_GAIN (6 + 14 = 20).
 # Travel maps to dB linearly.
 VOLUME_MIN_DB = -50
-VOLUME_MAX_DB = 9
+VOLUME_MAX_DB = 20
 
 # Fraction of the travel at the counterclockwise end that means silence, so the
 # knob has a definite "off" rather than bottoming out at merely very quiet.

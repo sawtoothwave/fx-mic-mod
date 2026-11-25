@@ -19,8 +19,10 @@ All changes sit on top of fx-mic-mod firmware 1.2.0. Tested on one FX Mic with C
 - **`"tails": true`** (new top-level `config.json` key). The paddle gates the mic going *into* the
   preset instead of the preset's output, like an effects send, so echo and reverb tails keep ringing
   after you let go. Changing presets still cuts the tail. Off by default.
-- **Gain staging.** Mic preamp `MIC_GAIN` 14 → 11 dB (14 clipped on loud singing), and the volume
-  knob's top `VOLUME_MAX_DB` 6 → 9 dB to win the level back after the preamp.
+- **Gain staging.** Mic preamp `MIC_GAIN` 14 → 0 dB, so effects that add to the voice (a short echo
+  most of all) have room before they clip on loud singing, and the volume knob's top
+  `VOLUME_MAX_DB` 6 → 20 dB to win the level back after the preamp. Autotune presets are untested
+  at this input level: their gates and pitch detection may need louder singing.
 - **Starts ready to sing.** In effects-only mode the mic powers on to page 1, preset 1 instead of
   Clean. BOTTOM still goes to Clean.
 
